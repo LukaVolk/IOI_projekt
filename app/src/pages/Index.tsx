@@ -328,7 +328,7 @@ const Index = () => {
       <footer className="border-t border-border bg-card mt-8">
         <div className="container py-4">
           <p className="text-xs text-muted-foreground text-center">
-            Data visualization for research purposes only. &copy; 2025
+            Data visualization for research purposes only. &copy; IOI 2025
           </p>
         </div>
       </footer>
