@@ -17,6 +17,8 @@ export interface StationWithData extends Station {
   measurements: Measurement[];
   latestPM10: number | null;
   averagePM10: number | null;
+  latestWind: number | null;
+  averageWind: number | null;
 }
 
 export interface DailyAggregate {

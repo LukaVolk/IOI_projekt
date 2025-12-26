@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-arrowheads';
 import { StationWithData } from '@/types/pollution';
 import { getPM10Color } from '@/lib/dataProcessing';
 
@@ -53,9 +54,10 @@ const SloveniaMap: React.FC<SloveniaMapProps> = ({
     // Add new markers
     stations.forEach(station => {
       const pm10Value = useDailyAverage ? station.averagePM10 : station.latestPM10;
+      const windValue = useDailyAverage ? station.averageWind : station.latestWind;
       const isSelected = selectedStations.includes(station.city);
-      
-      const marker = L.circleMarker([station.latitude, station.longitude], {
+
+      const pm10Marker = L.circleMarker([station.latitude, station.longitude], {
         radius: isSelected ? 12 : 8,
         fillColor: getPM10Color(pm10Value),
         color: isSelected ? 'hsl(var(--foreground))' : 'hsl(var(--background))',
@@ -66,8 +68,8 @@ const SloveniaMap: React.FC<SloveniaMapProps> = ({
 
       const pm10Display = pm10Value !== null ? pm10Value.toFixed(1) : 'N/A';
       const modeLabel = useDailyAverage ? 'Avg' : 'Latest';
-      
-      marker.bindPopup(`
+
+      pm10Marker.bindPopup(`
         <div class="text-sm">
           <div class="font-semibold text-foreground">${station.city}</div>
           <div class="text-muted-foreground mt-1">
@@ -79,19 +81,53 @@ const SloveniaMap: React.FC<SloveniaMapProps> = ({
         </div>
       `);
 
-      marker.on('click', () => {
+      pm10Marker.on('click', () => {
         onStationSelect(station.city);
       });
 
-      marker.addTo(mapRef.current!);
-      markersRef.current.push(marker);
+
+      // calculate arrow destination based on windValue and angle
+      // field is added later, replace the angle calculation below.
+      const angle = 0; // degrees, 0 = north
+
+      let destination: [number, number] | null = null;
+      if (windValue !== null && !Number.isNaN(windValue)) {
+        // arrow scale
+        const SCALE = 20000;  // 1 m/s ... 20 kilometrov
+        const distanceMeters = windValue * SCALE;
+
+        const R = 6371000; // earth radius in meters
+        const bearing = (angle * Math.PI) / 180; // to radians
+        const lat1 = (station.latitude * Math.PI) / 180;
+        const lon1 = (station.longitude * Math.PI) / 180;
+        const delta = distanceMeters / R;
+
+        const lat2 = Math.asin(
+          Math.sin(lat1) * Math.cos(delta) + Math.cos(lat1) * Math.sin(delta) * Math.cos(bearing)
+        );
+
+        const lon2 = lon1 + Math.atan2(
+          Math.sin(bearing) * Math.sin(delta) * Math.cos(lat1),
+          Math.cos(delta) - Math.sin(lat1) * Math.sin(lat2)
+        );
+
+        destination = [(lat2 * 180) / Math.PI, (lon2 * 180) / Math.PI];
+      }
+
+      const windVector = destination
+        ? L.polyline([[station.latitude, station.longitude], destination]).arrowheads({})
+        : L.polyline([[station.latitude, station.longitude], [station.latitude, station.longitude]]).arrowheads({});
+
+      pm10Marker.addTo(mapRef.current!);
+      windVector.addTo(mapRef.current!);
+      markersRef.current.push(pm10Marker);
     });
   }, [stations, selectedStations, onStationSelect, useDailyAverage]);
 
   return (
     <div className="relative w-full h-full min-h-[400px]">
       <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
-      
+
       {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-sm z-[1000]">
         <div className="text-xs font-medium text-foreground mb-2">PM10 Levels (µg/m³)</div>
