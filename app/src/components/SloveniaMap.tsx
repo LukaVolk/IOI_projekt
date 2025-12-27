@@ -121,6 +121,7 @@ const SloveniaMap: React.FC<SloveniaMapProps> = ({
       pm10Marker.addTo(mapRef.current!);
       windVector.addTo(mapRef.current!);
       markersRef.current.push(pm10Marker);
+      markersRef.current.push(windVector);
     });
   }, [stations, selectedStations, onStationSelect, useDailyAverage]);
 
