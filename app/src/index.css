@@ -149,3 +149,138 @@
   margin: 12px 16px;
   font-size: 14px;
 }
+
+/* Recharts Brush styling for better visibility */
+.recharts-brush-slide {
+  fill: hsl(var(--primary));
+  fill-opacity: 0.3;
+}
+
+/* Rounded background border for brush track (outer rect only) */
+.recharts-brush rect:first-of-type {
+  rx: 8;
+  ry: 8;
+}
+
+/* Prevent default focus/active highlight on brush rects while keeping them draggable */
+.recharts-brush rect {
+  outline: none;
+}
+
+.recharts-brush-traveller:hover rect,
+.recharts-brush-traveller:active rect {
+  fill: hsl(var(--primary));
+  stroke: hsl(var(--primary));
+}
+
+.recharts-brush-traveller rect {
+  fill: hsl(var(--primary));
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+  rx: 3;
+  ry: 3;
+}
+
+.recharts-brush-traveller line {
+  stroke: hsl(var(--primary-foreground));
+  stroke-width: 1.5;
+}
+
+.recharts-brush-texts text {
+  fill: hsl(var(--foreground));
+  font-weight: 500;
+}
+
+/* Leaflet tooltip pane z-index override */
+.leaflet-tooltip-pane {
+  z-index: 10001 !important;
+}
+
+/* Station marker tooltips - appears above map */
+.station-marker-tooltip {
+  z-index: 10001 !important;
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 12px -2px hsl(var(--foreground) / 0.15), 
+              0 2px 6px -2px hsl(var(--foreground) / 0.1) !important;
+  max-width: 250px !important;
+  white-space: normal !important;
+}
+
+/* Auto-direction tooltip arrows */
+.station-marker-tooltip.leaflet-tooltip-top::before {
+  border-top-color: hsl(var(--card)) !important;
+}
+
+.station-marker-tooltip.leaflet-tooltip-bottom::before {
+  border-bottom-color: hsl(var(--card)) !important;
+}
+
+.station-marker-tooltip.leaflet-tooltip-left::before {
+  border-left-color: hsl(var(--card)) !important;
+}
+
+.station-marker-tooltip.leaflet-tooltip-right::before {
+  border-right-color: hsl(var(--card)) !important;
+}
+
+.station-marker-tooltip .leaflet-tooltip-content {
+  margin: 0 !important;
+}
+
+.station-tooltip {
+  min-width: 180px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.station-tooltip-title {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.station-tooltip-time {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.station-tooltip-data {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.station-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.station-tooltip-value {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+/* Ensure Leaflet tooltips use pointer events */
+.leaflet-tooltip {
+  pointer-events: auto !important;
+}
+
+/* Make station markers focusable for keyboard accessibility */
+.leaflet-marker-icon,
+.leaflet-interactive {
+  outline-offset: 2px;
+}
+
+.leaflet-interactive:focus {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}

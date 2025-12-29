@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { Measurement, Station } from '@/types/pollution';
+import { Measurement, Station, Prediction } from '@/types/pollution';
 
 export function parseMeasurementsCSV(file: File): Promise<Measurement[]> {
   return new Promise((resolve, reject) => {
@@ -23,6 +23,7 @@ export function parseMeasurementsCSV(file: File): Promise<Measurement[]> {
             padavine: parseNumeric(row.padavine),
             temperatura: parseNumeric(row.temperatura),
             veter: parseNumeric(row.veter),
+            wind_direction: parseNumeric(row.wind_direction),
           });
         }
         
@@ -61,6 +62,37 @@ export function parseStationsCSV(file: File): Promise<Station[]> {
         }
         
         resolve(stations);
+      },
+      error: (error) => {
+        reject(error);
+      },
+    });
+  });
+}
+
+export function parsePredictionsCSV(file: File): Promise<Prediction[]> {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const predictions: Prediction[] = [];
+        for (const row of results.data as Record<string, string>[]) {
+          // Accept both 'city' and 'mesto' for city, and 'datetime' and 'datum_zajema' for date
+          const city = row.city?.trim() || row.mesto?.trim();
+          const datetime = row.datetime || row.datum_zajema;
+          if (!city || !datetime) continue;
+          const parsedDate = new Date(datetime);
+          if (isNaN(parsedDate.getTime())) continue;
+          predictions.push({
+            city,
+            datetime: parsedDate,
+            pm10_pred: parseNumeric(row.pm10_pred),
+          });
+        }
+        // Sort by datetime
+        predictions.sort((a, b) => a.datetime.getTime() - b.datetime.getTime());
+        resolve(predictions);
       },
       error: (error) => {
         reject(error);

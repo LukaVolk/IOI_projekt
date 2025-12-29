@@ -75,10 +75,31 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       timeMap.set(timestamp, existing);
     });
     
-    return Array.from(timeMap.values()).sort((a, b) => 
-      (a.timestamp as number) - (b.timestamp as number)
+    return Array.from(timeMap.values()).sort(
+      (a, b) => (a.timestamp as number) - (b.timestamp as number)
     );
   }, [measurements, selectedStations, useDailyAverage, metric]);
+
+  // For raw (non-daily) view, only show one tick per calendar day on the X axis
+  const xTicks = useMemo(() => {
+    if (chartData.length === 0 || useDailyAverage) return undefined;
+
+    const seenDays = new Set<string>();
+    const ticks: (string | number)[] = [];
+
+    chartData.forEach((d) => {
+      const ts = d.timestamp as number | undefined;
+      if (!ts) return;
+      const dayKey = format(new Date(ts), 'yyyy-MM-dd');
+      if (!seenDays.has(dayKey)) {
+        seenDays.add(dayKey);
+        // Use the chart's existing `date` value so ticks align with data
+        ticks.push(d.date as string);
+      }
+    });
+
+    return ticks;
+  }, [chartData, useDailyAverage]);
 
   if (chartData.length === 0) {
     return (
@@ -93,13 +114,12 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
       <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
         <XAxis 
-          dataKey="date" 
+          dataKey="date"
+          ticks={xTicks}
           tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
           tickFormatter={(value) => {
-            if (useDailyAverage) {
-              return format(new Date(value), 'MMM dd');
-            }
-            return format(new Date(value), 'MMM dd HH:mm');
+            // Show only the date on the X axis for both daily and raw views
+            return format(new Date(value), 'MMM dd');
           }}
           angle={-45}
           textAnchor="end"
@@ -131,19 +151,13 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
           wrapperStyle={{ fontSize: '12px' }}
         />
         
-        {/* Reference line at 50 µg/m³ for PM10 */}
+        {/* Reference line at 50 µg/m³ for PM10 (label moved to chart header to avoid overflow) */}
         {metric === 'pm10' && (
           <ReferenceLine 
             y={50} 
             stroke="hsl(var(--destructive))" 
             strokeDasharray="5 5"
             strokeWidth={2}
-            label={{
-              value: 'EU Daily Limit (50 µg/m³)',
-              position: 'right',
-              fill: 'hsl(var(--destructive))',
-              fontSize: 10,
-            }}
           />
         )}
         
@@ -163,9 +177,10 @@ const TimeSeriesChart: React.FC<TimeSeriesChartProps> = ({
         {chartData.length > 50 && (
           <Brush 
             dataKey="date" 
-            height={30} 
-            stroke="hsl(var(--border))"
+            height={40} 
+            stroke="hsl(var(--primary))"
             fill="hsl(var(--muted))"
+            travellerWidth={12}
           />
         )}
       </LineChart>
